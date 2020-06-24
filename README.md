@@ -1,12 +1,19 @@
 
 
-## must have
+## must haves:
+
+```
 RUN dotnet tool install dotnet-counters --global
 RUN dotnet tool install dotnet-trace --global
 RUN dotnet tool install dotnet-dump --global
 RUN dotnet tool install dotnet-gcdump --global
+```
 
-docker exec -it $(docker ps -f name=monitor --format="{{.ID}}") dotnet counters monitor --process-id 1 System.Runtime Microsoft.AspNetCore.Hosting
+```bash
+$ docker exec -it $(docker ps -f name=monitor --format="{{.ID}}") dotnet counters monitor --process-id 1 System.Runtime Microsoft.AspNetCore.Hosting
+```
+
+Will result in this if you have not updated the PATH with the location of the above tools:
 
 ```
 Could not execute because the specified command or file was not found.
@@ -16,61 +23,79 @@ Possible reasons for this include:
   * You intended to run a global tool, but a dotnet-prefixed executable with this name could not be found on the PATH.
 ```
 
-https://docs.microsoft.com/en-us/dotnet/core/tools/troubleshoot-usage-issues
+Ref: [troubleshoot](https://docs.microsoft.com/en-us/dotnet/core/tools/troubleshoot-usage-issues)
 
-```
+Add this to your Dockerfile:
+
+```dockerfile
 COPY --from=build /root/.dotnet/tools/ /app/tools
 ENV PATH="${PATH}:/app/tools"
 ```
 
-sudo apt install apache2-utils
+To load test the sample application, install the ab tool:
 
-```bash
+```script
+$ sudo apt install apache2-utils
+```
+
+To run a load test, start docker-compose in one terminal, and run the `ab` command in another:
+
+```script
+docker-compose build
+docker-compose up
+
 ab -k -n 1000000 -c 100 -t 600 http://localhost:8086/
 ```
 
-Sometimes get this:
+You may sometimes get this:
 
 ```
 apr_socket_recv: Connection reset by peer (104)
 ```
 
-which means that the other end (webserver) suddenly disconnected in the middle of the session. have a look at the apache or nginx error logs to see if there is anything suspicious there.
+The means that the other end (webserver) suddenly disconnected in the middle of the session. have a look at the apache or nginx error logs to see if there is anything suspicious there.
 
-Either increase the maxThread or request queue length
+Solutions to this is (wip):
 
-!! need to look for kestrel config !!
-It's pointing to a docker issue, more so than a kestrel
+- Either increase the maxThread or request queue length
+- Need to look for kestrel config
+- It's pointing to a docker issue, more so than a kestrel
 
+To look at the sockets statistics, run the ss command:
 
-```bash
+```script
 watch -n 1 "ss -s"
 ```
 
-To get pid:
-```
-docker ps -a | grep monitor
+Ref: (sockets)[https://www.cyberciti.biz/tips/linux-investigate-sockets-network-connections.html]
 
-caad7cd4ba72        monitor                "dotnet monitor.dll"     18 minutes ago      Exited (0) 3 minutes ago
-          monitor_monitor_1
+To get pid, type:
+```script
+$ docker ps -a | grep monitor
+
+caad7cd4ba72        monitor                "dotnet monitor.dll"     18 minutes ago      Exited (0) 3 minutes ago     monitor_monitor_1
 ```
 
-```
-docker exec -it $(docker ps -f name=monitor --format="{{.ID}}") dotnet gcdump collect -process-id 1
+To grab the gc dump of this container instance, type:
+```script
+$ docker exec -it $(docker ps -f name=monitor --format="{{.ID}}") dotnet gcdump collect -process-id 1
 
 Writing gcdump to '/app/20200624_115944_1.gcdump'...
         Finished writing 313784 bytes.
 ```
 
-```
-docker cp caa:/app/20200624_114456_1.gcdump .
+To copy from the docker instance to the host, type:
+
+```script
+$ docker cp caa:/app/20200624_114456_1.gcdump .
 ```
 
-To download PerfView
-```
-https://github.com/Microsoft/perfview/releases
-```
+You'll need a utility to get the most out of this file.  I recommend PerfView.  You can download it from `https://github.com/Microsoft/perfview/releases`.
 
+
+To test with different ThreadPool limits:
+
+To set the min/max ThreadPool Threads, open your c# project file and the `ThreadPool*Theads` elements to the PropertyGroup as shown here:
 ```xml
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
