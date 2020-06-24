@@ -1,6 +1,10 @@
+## Getting started
 
+TBC
 
-## Install the dotnet tools by adding them to the Dockerfile:
+## Explore (TBC)
+
+Install the dotnet tools by adding them to the Dockerfile:
 
 ```Dockerfile
 RUN dotnet tool install dotnet-counters --global
