@@ -1,11 +1,10 @@
 
 
-## must haves:
+## Install the dotnet tools by adding them to the Dockerfile:
 
-```
+```Dockerfile
 RUN dotnet tool install dotnet-counters --global
 RUN dotnet tool install dotnet-trace --global
-RUN dotnet tool install dotnet-dump --global
 RUN dotnet tool install dotnet-gcdump --global
 ```
 
@@ -65,6 +64,17 @@ To look at the sockets statistics, run the ss command:
 
 ```script
 watch -n 1 "ss -s"
+
+Total: 233
+TCP:   316 (estab 5, closed 201, orphaned 0, timewait 0)
+
+Transport Total     IP        IPv6
+RAW       0         0         0
+UDP       0         0         0
+TCP       115       114       1
+INET      115       114       1
+FRAG      0         0         0
+
 ```
 
 Ref: (sockets)[https://www.cyberciti.biz/tips/linux-investigate-sockets-network-connections.html]
