@@ -33,10 +33,13 @@ namespace monitor
 
             app.UseEndpoints(endpoints =>
             {
+                
+
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Hello World!");
-                    logger.LogInformation("/");
+                    //logger.LogInformation("/");
+                    OpenMessageEventSource.Instance.Root();
                 }); 
 
                 endpoints.MapGet("/delay", async context =>
@@ -49,7 +52,8 @@ namespace monitor
                     });
 
                     await context.Response.WriteAsync($"delayed {value} secs!");
-                    logger.LogInformation($"/delayed {value} secs!");
+                    //logger.LogInformation($"/delayed {value} secs!");
+                    OpenMessageEventSource.Instance.Delay();
                 });
 
             });

@@ -1,33 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Tracing;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace monitor
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(x=>x.AddConsole() )
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-
     [EventSource(Name = "OpenMessage")]
     internal class OpenMessageEventSource : EventSource
     {
@@ -36,11 +12,9 @@ namespace monitor
         private long _rootRequest = 0;
         private long _delayRequest = 0;
         private IncrementingPollingCounter _inflightMessagesCounter;
-        private EventCounter _messageDurationCounter;
         private IncrementingPollingCounter _processedCountCounter;
         private IncrementingEventCounter _rootHit;
         private IncrementingEventCounter _delayHit;
-
 
         private OpenMessageEventSource() { }
 
